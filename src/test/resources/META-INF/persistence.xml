@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<persistence version="2.1" xmlns="http://xmlns.jcp.org/xml/ns/persistence" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence http://xmlns.jcp.org/xml/ns/persistence/persistence_2_1.xsd">
+  <persistence-unit name="reflection-form-builder-it" transaction-type="RESOURCE_LOCAL">
+    <provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
+    <!--<provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>-->
+    <class>richtercloud.reflection.form.builder.jpa.entities.EntityA</class>
+    <class>richtercloud.reflection.form.builder.jpa.entities.EntityB</class>
+    <class>richtercloud.reflection.form.builder.jpa.entities.EntityC</class>
+    <class>richtercloud.reflection.form.builder.jpa.entities.EntityD</class>
+    <class>richtercloud.reflection.form.builder.jpa.entities.EntityE</class>
+    <class>richtercloud.reflection.form.builder.jpa.entities.EntityF</class>
+    <class>richtercloud.reflection.form.builder.jpa.entities.EntityAMappedBy</class>
+    <class>richtercloud.reflection.form.builder.jpa.entities.EntityBMappedBy</class>
+    <class>richtercloud.reflection.form.builder.jpa.entities.EntityCMappedBy</class>
+    <class>richtercloud.reflection.form.builder.jpa.entities.EntityDMappedBy</class>
+    <class>richtercloud.reflection.form.builder.jpa.entities.EntityEMappedBy</class>
+    <class>richtercloud.reflection.form.builder.jpa.entities.EntityFMappedBy</class>
+    <class>richtercloud.reflection.form.builder.jpa.entities.EntityAMappedByInverse</class>
+    <class>richtercloud.reflection.form.builder.jpa.entities.EntityBMappedByInverse</class>
+    <class>richtercloud.reflection.form.builder.jpa.entities.EntityEMappedByInverse</class>
+    <class>richtercloud.reflection.form.builder.jpa.entities.EntityFMappedByInverse</class>
+    <properties>
+      <property name="javax.persistence.schema-generation.database.action" value="create"/>
+      <!--<property name="hibernate.hbm2ddl.auto" value="update"/>-->
+    </properties>
+  </persistence-unit>
+</persistence>
