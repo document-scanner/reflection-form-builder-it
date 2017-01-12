@@ -14,25 +14,10 @@
  */
 package richtercloud.reflection.form.builder.jpa;
 
-import richtercloud.reflection.form.builder.jpa.entities.EntityFMappedByInverse;
-import richtercloud.reflection.form.builder.jpa.entities.EntityDMappedBy;
-import richtercloud.reflection.form.builder.jpa.entities.EntityF;
-import richtercloud.reflection.form.builder.jpa.entities.EntityEMappedBy;
-import richtercloud.reflection.form.builder.jpa.entities.EntityA;
-import richtercloud.reflection.form.builder.jpa.entities.EntityAMappedBy;
-import richtercloud.reflection.form.builder.jpa.entities.EntityB;
-import richtercloud.reflection.form.builder.jpa.entities.EntityBMappedBy;
-import richtercloud.reflection.form.builder.jpa.entities.EntityEMappedByInverse;
-import richtercloud.reflection.form.builder.jpa.entities.EntityBMappedByInverse;
-import richtercloud.reflection.form.builder.jpa.entities.EntityCMappedBy;
-import richtercloud.reflection.form.builder.jpa.entities.EntityC;
-import richtercloud.reflection.form.builder.jpa.entities.EntityE;
-import richtercloud.reflection.form.builder.jpa.entities.EntityFMappedBy;
-import richtercloud.reflection.form.builder.jpa.entities.EntityAMappedByInverse;
-import richtercloud.reflection.form.builder.jpa.entities.EntityD;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -53,6 +38,22 @@ import richtercloud.message.handler.Message;
 import richtercloud.message.handler.MessageHandler;
 import richtercloud.reflection.form.builder.fieldhandler.FieldUpdateEvent;
 import richtercloud.reflection.form.builder.fieldhandler.MappedFieldUpdateEvent;
+import richtercloud.reflection.form.builder.jpa.entities.EntityA;
+import richtercloud.reflection.form.builder.jpa.entities.EntityAMappedBy;
+import richtercloud.reflection.form.builder.jpa.entities.EntityAMappedByInverse;
+import richtercloud.reflection.form.builder.jpa.entities.EntityB;
+import richtercloud.reflection.form.builder.jpa.entities.EntityBMappedBy;
+import richtercloud.reflection.form.builder.jpa.entities.EntityBMappedByInverse;
+import richtercloud.reflection.form.builder.jpa.entities.EntityC;
+import richtercloud.reflection.form.builder.jpa.entities.EntityCMappedBy;
+import richtercloud.reflection.form.builder.jpa.entities.EntityD;
+import richtercloud.reflection.form.builder.jpa.entities.EntityDMappedBy;
+import richtercloud.reflection.form.builder.jpa.entities.EntityE;
+import richtercloud.reflection.form.builder.jpa.entities.EntityEMappedBy;
+import richtercloud.reflection.form.builder.jpa.entities.EntityEMappedByInverse;
+import richtercloud.reflection.form.builder.jpa.entities.EntityF;
+import richtercloud.reflection.form.builder.jpa.entities.EntityFMappedBy;
+import richtercloud.reflection.form.builder.jpa.entities.EntityFMappedByInverse;
 import richtercloud.reflection.form.builder.jpa.idapplier.GeneratedValueIdApplier;
 import richtercloud.reflection.form.builder.jpa.idapplier.IdApplier;
 import richtercloud.reflection.form.builder.jpa.storage.DerbyEmbeddedPersistenceStorage;
@@ -77,7 +78,7 @@ public class JPAReflectionFormBuilderIT {
     private final static Logger LOGGER = LoggerFactory.getLogger(JPAReflectionFormBuilderIT.class);
 
     @Test
-    public void testOnFieldUpdate() throws IOException, StorageCreationException, NoSuchFieldException, IllegalArgumentException, IllegalAccessException, StorageConfValidationException, StorageException, SQLException {
+    public void testOnFieldUpdate() throws IOException, StorageCreationException, NoSuchFieldException, IllegalArgumentException, IllegalAccessException, StorageConfValidationException, StorageException, SQLException, InvocationTargetException {
         Set<Class<?>> entityClasses = new HashSet<Class<?>>(Arrays.asList(EntityA.class,
                 EntityB.class,
                 EntityC.class,
@@ -113,12 +114,14 @@ public class JPAReflectionFormBuilderIT {
             }
         };
         IdApplier idApplier = new GeneratedValueIdApplier();
+        IdGenerator idGenerator = new GeneratedValueIdGenerator();
         JPAReflectionFormBuilder instance = new JPAReflectionFormBuilder(storage,
                 "dialog title",
                 messageHandler,
                 confirmMessageHandler,
                 fieldRetriever,
                 idApplier,
+                idGenerator,
                 new HashMap<Class<?>, WarningHandler<?>>() //warningHandlers
         );
 
