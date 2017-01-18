@@ -96,7 +96,7 @@ public class JPAReflectionFormBuilderIT {
         DerbyEmbeddedPersistenceStorageConf storageConf = new DerbyEmbeddedPersistenceStorageConf(entityClasses, databaseName, schemeChecksumFile);
         String persistenceUnitName = "reflection-form-builder-it";
         JPAFieldRetriever fieldRetriever = new JPACachedFieldRetriever();
-        PersistenceStorage storage = new DerbyEmbeddedPersistenceStorage(storageConf,
+        PersistenceStorage<Long> storage = new DerbyEmbeddedPersistenceStorage(storageConf,
                 persistenceUnitName,
                 1, //parallelQueryCount
                 fieldRetriever);
