@@ -61,7 +61,10 @@ public class PostgresqlSequenceManagerIT {
                 fieldRetriever);
         storage.start();
         PostgresqlSequenceManager instance = new PostgresqlSequenceManager(storage);
-        instance.createSequence(sequenceName);
-        storage.shutdown();
+        try {
+            instance.createSequence(sequenceName);
+        }finally {
+            storage.shutdown();
+        }
     }
 }

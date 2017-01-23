@@ -82,7 +82,10 @@ public class MySQLSequenceManagerIT {
                 fieldRetriever);
         storage.start();
         MySQLSequenceManager instance = new MySQLSequenceManager(storage);
-        instance.createSequence(sequenceName);
-        storage.shutdown();
+        try {
+            instance.createSequence(sequenceName);
+        }finally {
+            storage.shutdown();
+        }
     }
 }

@@ -54,7 +54,10 @@ public class DerbySequenceManagerIT {
                 fieldRetriever);
         storage.start();
         DerbySequenceManager instance = new DerbySequenceManager(storage);
-        instance.createSequence(sequenceName);
-        storage.shutdown();
+        try {
+            instance.createSequence(sequenceName);
+        }finally {
+            storage.shutdown();
+        }
     }
 }
