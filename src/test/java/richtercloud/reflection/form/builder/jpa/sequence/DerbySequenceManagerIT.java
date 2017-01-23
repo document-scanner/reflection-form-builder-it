@@ -41,7 +41,7 @@ public class DerbySequenceManagerIT {
         String sequenceName = "with-minus";
         Set<Class<?>> entityClasses = new HashSet<Class<?>>(Arrays.asList(EntityA.class));
         File databaseDir = File.createTempFile(DerbySequenceManagerIT.class.getSimpleName(), "database");
-        FileUtils.deleteQuietly(databaseDir);
+        FileUtils.forceDelete(databaseDir);
         File schemeChecksumFile = File.createTempFile(DerbySequenceManagerIT.class.getSimpleName(), "checksum");
         DerbyEmbeddedPersistenceStorageConf storageConf = new DerbyEmbeddedPersistenceStorageConf(entityClasses,
                 databaseDir.getAbsolutePath(), //databaseName

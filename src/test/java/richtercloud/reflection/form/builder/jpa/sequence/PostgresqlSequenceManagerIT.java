@@ -40,9 +40,9 @@ public class PostgresqlSequenceManagerIT {
     public void testCreateSequence() throws Exception {
         String sequenceName = "with-minus";
         Set<Class<?>> entityClasses = new HashSet<Class<?>>(Arrays.asList(EntityA.class));
-        File databaseDir = File.createTempFile(DerbySequenceManagerIT.class.getSimpleName(), "database");
-        FileUtils.deleteQuietly(databaseDir);
-        File schemeChecksumFile = File.createTempFile(DerbySequenceManagerIT.class.getSimpleName(), "checksum");
+        File databaseDir = File.createTempFile(PostgresqlSequenceManagerIT.class.getSimpleName(), "database");
+        FileUtils.forceDelete(databaseDir);
+        File schemeChecksumFile = File.createTempFile(PostgresqlSequenceManagerIT.class.getSimpleName(), "checksum");
         String username = "reflection-form-builder";
         String password = username;
         String databaseName = "reflection-form-builder";

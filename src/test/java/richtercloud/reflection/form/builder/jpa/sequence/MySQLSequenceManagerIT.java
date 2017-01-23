@@ -59,7 +59,7 @@ public class MySQLSequenceManagerIT {
         String sequenceName = "with-minus";
         Set<Class<?>> entityClasses = new HashSet<Class<?>>(Arrays.asList(EntityA.class));
         File databaseDir = File.createTempFile(MySQLSequenceManagerIT.class.getSimpleName(), "database");
-        FileUtils.deleteQuietly(databaseDir);
+        FileUtils.forceDelete(databaseDir);
         File schemeChecksumFile = File.createTempFile(MySQLSequenceManagerIT.class.getSimpleName(), "checksum");
         String username = "reflection-form-builder";
         String password = username;
