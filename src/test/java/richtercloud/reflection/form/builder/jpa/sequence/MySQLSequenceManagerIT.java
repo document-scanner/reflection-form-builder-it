@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import org.apache.commons.io.FileUtils;
+import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -84,6 +85,8 @@ public class MySQLSequenceManagerIT {
         MySQLSequenceManager instance = new MySQLSequenceManager(storage);
         try {
             instance.createSequence(sequenceName);
+            long nextSequenceValue = instance.getNextSequenceValue(sequenceName);
+            assertEquals(1L, nextSequenceValue);
         }finally {
             storage.shutdown();
         }

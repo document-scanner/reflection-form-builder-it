@@ -19,7 +19,10 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import org.apache.commons.io.FileUtils;
+import static org.junit.Assert.assertEquals;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import richtercloud.reflection.form.builder.FieldRetriever;
 import richtercloud.reflection.form.builder.jpa.JPACachedFieldRetriever;
 import richtercloud.reflection.form.builder.jpa.entities.EntityA;
@@ -32,6 +35,7 @@ import richtercloud.reflection.form.builder.jpa.storage.PostgresqlAutoPersistenc
  * @author richter
  */
 public class PostgresqlSequenceManagerIT {
+    private final static Logger LOGGER = LoggerFactory.getLogger(PostgresqlSequenceManagerIT.class);
 
     /**
      * Test of createSequence method, of class PostgresqlSequenceManager.
@@ -41,6 +45,7 @@ public class PostgresqlSequenceManagerIT {
         String sequenceName = "with-minus";
         Set<Class<?>> entityClasses = new HashSet<Class<?>>(Arrays.asList(EntityA.class));
         File databaseDir = File.createTempFile(PostgresqlSequenceManagerIT.class.getSimpleName(), "database");
+        LOGGER.debug(String.format("using '%s' as database directory", databaseDir));
         FileUtils.forceDelete(databaseDir);
         File schemeChecksumFile = File.createTempFile(PostgresqlSequenceManagerIT.class.getSimpleName(), "checksum");
         String username = "reflection-form-builder";
@@ -63,6 +68,8 @@ public class PostgresqlSequenceManagerIT {
         PostgresqlSequenceManager instance = new PostgresqlSequenceManager(storage);
         try {
             instance.createSequence(sequenceName);
+            long nextSequenceValue = instance.getNextSequenceValue(sequenceName);
+            assertEquals(1L, nextSequenceValue);
         }finally {
             storage.shutdown();
         }

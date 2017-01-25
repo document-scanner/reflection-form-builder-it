@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import org.apache.commons.io.FileUtils;
+import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 import richtercloud.reflection.form.builder.FieldRetriever;
 import richtercloud.reflection.form.builder.jpa.JPACachedFieldRetriever;
@@ -56,6 +57,8 @@ public class DerbySequenceManagerIT {
         DerbySequenceManager instance = new DerbySequenceManager(storage);
         try {
             instance.createSequence(sequenceName);
+            long nextSequenceValue = instance.getNextSequenceValue(sequenceName);
+            assertEquals(0L, nextSequenceValue);
         }finally {
             storage.shutdown();
         }
