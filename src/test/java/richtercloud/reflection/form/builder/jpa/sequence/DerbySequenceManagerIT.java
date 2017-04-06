@@ -21,7 +21,7 @@ import java.util.Set;
 import org.apache.commons.io.FileUtils;
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;
-import richtercloud.reflection.form.builder.FieldRetriever;
+import richtercloud.validation.tools.FieldRetriever;
 import richtercloud.reflection.form.builder.jpa.JPACachedFieldRetriever;
 import richtercloud.reflection.form.builder.jpa.entities.EntityA;
 import richtercloud.reflection.form.builder.jpa.storage.DerbyEmbeddedPersistenceStorage;
