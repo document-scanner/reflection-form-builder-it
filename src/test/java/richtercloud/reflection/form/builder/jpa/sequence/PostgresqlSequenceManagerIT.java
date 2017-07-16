@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -51,10 +52,17 @@ public class PostgresqlSequenceManagerIT {
         String username = "reflection-form-builder";
         String password = username;
         String databaseName = "reflection-form-builder";
+        Pair<String, String> bestPostgresqlBaseDir = PostgresqlAutoPersistenceStorageConf.findBestInitialPostgresqlBasePath();
+            //@TODO: add discovery for other OS and allow specification as system property
+        if(bestPostgresqlBaseDir == null) {
+            throw new IllegalArgumentException("no PostgreSQL initdb binary could be found (currently only Debian-based systems with PostgreSQL binaries in /usr/lib/postgresql/[version] are supported.");
+        }
         PostgresqlAutoPersistenceStorageConf storageConf = new PostgresqlAutoPersistenceStorageConf(entityClasses,
                 username,
                 schemeChecksumFile,
-                databaseDir.getAbsolutePath() //databaseDir
+                databaseDir.getAbsolutePath(), //databaseDir
+                bestPostgresqlBaseDir.getKey(),
+                bestPostgresqlBaseDir.getValue()
         );
         storageConf.setDatabaseName(databaseName);
         storageConf.setPassword(password);
