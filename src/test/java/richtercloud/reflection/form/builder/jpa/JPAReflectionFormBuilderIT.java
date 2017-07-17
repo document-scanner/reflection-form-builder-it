@@ -33,9 +33,9 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import richtercloud.message.handler.ConfirmMessageHandler;
-import richtercloud.message.handler.LoggerMessageHandler;
+import richtercloud.message.handler.IssueHandler;
+import richtercloud.message.handler.LoggerIssueHandler;
 import richtercloud.message.handler.Message;
-import richtercloud.message.handler.MessageHandler;
 import richtercloud.reflection.form.builder.fieldhandler.FieldUpdateEvent;
 import richtercloud.reflection.form.builder.fieldhandler.MappedFieldUpdateEvent;
 import richtercloud.reflection.form.builder.jpa.entities.EntityA;
@@ -101,7 +101,7 @@ public class JPAReflectionFormBuilderIT {
                 1, //parallelQueryCount
                 fieldRetriever);
         storage.start();
-        MessageHandler messageHandler = new LoggerMessageHandler(LOGGER);
+        IssueHandler issueHandler = new LoggerIssueHandler(LOGGER);
         ConfirmMessageHandler confirmMessageHandler = new ConfirmMessageHandler() {
             @Override
             public int confirm(Message message) {
@@ -117,7 +117,7 @@ public class JPAReflectionFormBuilderIT {
         IdGenerator idGenerator = new GeneratedValueIdGenerator();
         JPAReflectionFormBuilder instance = new JPAReflectionFormBuilder(storage,
                 "dialog title",
-                messageHandler,
+                issueHandler,
                 confirmMessageHandler,
                 fieldRetriever,
                 idApplier,
