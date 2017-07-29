@@ -15,6 +15,7 @@
 package richtercloud.reflection.form.builder.jpa.sequence;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -43,43 +44,47 @@ public class PostgresqlSequenceManagerIT {
      */
     @Test
     public void testCreateSequence() throws Exception {
-        String sequenceName = "with-minus";
-        Set<Class<?>> entityClasses = new HashSet<Class<?>>(Arrays.asList(EntityA.class));
-        File databaseDir = File.createTempFile(PostgresqlSequenceManagerIT.class.getSimpleName(), "database");
-        LOGGER.debug(String.format("using '%s' as database directory", databaseDir));
-        FileUtils.forceDelete(databaseDir);
-        File schemeChecksumFile = File.createTempFile(PostgresqlSequenceManagerIT.class.getSimpleName(), "checksum");
-        String username = "reflection-form-builder";
-        String password = username;
-        String databaseName = "reflection-form-builder";
-        Pair<String, String> bestPostgresqlBaseDir = PostgresqlAutoPersistenceStorageConf.findBestInitialPostgresqlBasePath();
-            //@TODO: add discovery for other OS and allow specification as system property
-        if(bestPostgresqlBaseDir == null) {
-            throw new IllegalArgumentException("no PostgreSQL initdb binary could be found (currently only Debian-based systems with PostgreSQL binaries in /usr/lib/postgresql/[version] are supported.");
-        }
-        PostgresqlAutoPersistenceStorageConf storageConf = new PostgresqlAutoPersistenceStorageConf(entityClasses,
-                username,
-                schemeChecksumFile,
-                databaseDir.getAbsolutePath(), //databaseDir
-                bestPostgresqlBaseDir.getKey(),
-                bestPostgresqlBaseDir.getValue()
-        );
-        storageConf.setDatabaseName(databaseName);
-        storageConf.setPassword(password);
-        String persistenceUnitName = "reflection-form-builder-it";
-        FieldRetriever fieldRetriever = new JPACachedFieldRetriever();
-        PersistenceStorage<Long> storage = new PostgresqlAutoPersistenceStorage(storageConf,
-                persistenceUnitName,
-                10, //parallelQueryCount
-                fieldRetriever);
-        storage.start();
-        PostgresqlSequenceManager instance = new PostgresqlSequenceManager(storage);
+        PersistenceStorage<Long> storage = null;
         try {
+            String sequenceName = "with-minus";
+            Set<Class<?>> entityClasses = new HashSet<Class<?>>(Arrays.asList(EntityA.class));
+            File databaseDir = Files.createTempDirectory(PostgresqlSequenceManagerIT.class.getSimpleName()).toFile();
+            LOGGER.debug(String.format("using '%s' as database directory", databaseDir));
+            FileUtils.forceDelete(databaseDir);
+            File schemeChecksumFile = File.createTempFile(PostgresqlSequenceManagerIT.class.getSimpleName(), "checksum");
+            String username = "reflection-form-builder";
+            String password = username;
+            String databaseName = "reflection-form-builder";
+            Pair<String, String> bestPostgresqlBaseDir = PostgresqlAutoPersistenceStorageConf.findBestInitialPostgresqlBasePath();
+                //@TODO: add discovery for other OS and allow specification as system property
+            if(bestPostgresqlBaseDir == null) {
+                throw new IllegalArgumentException("no PostgreSQL initdb binary could be found (currently only Debian-based systems with PostgreSQL binaries in /usr/lib/postgresql/[version] are supported.");
+            }
+            PostgresqlAutoPersistenceStorageConf storageConf = new PostgresqlAutoPersistenceStorageConf(entityClasses,
+                    username,
+                    password,
+                    databaseName,
+                    schemeChecksumFile,
+                    databaseDir.getAbsolutePath(), //databaseDir
+                    bestPostgresqlBaseDir.getKey(),
+                    bestPostgresqlBaseDir.getValue(),
+                    "createdb" //createdbBinaryPath
+            );
+            String persistenceUnitName = "reflection-form-builder-it";
+            FieldRetriever fieldRetriever = new JPACachedFieldRetriever();
+            storage = new PostgresqlAutoPersistenceStorage(storageConf,
+                    persistenceUnitName,
+                    10, //parallelQueryCount
+                    fieldRetriever);
+            storage.start();
+            PostgresqlSequenceManager instance = new PostgresqlSequenceManager(storage);
             instance.createSequence(sequenceName);
             long nextSequenceValue = instance.getNextSequenceValue(sequenceName);
             assertEquals(1L, nextSequenceValue);
         }finally {
-            storage.shutdown();
+            if(storage != null) {
+                storage.shutdown();
+            }
         }
     }
 }

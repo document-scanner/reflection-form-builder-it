@@ -15,6 +15,7 @@
 package richtercloud.reflection.form.builder.jpa.sequence;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -39,28 +40,31 @@ public class DerbySequenceManagerIT {
      */
     @Test
     public void testCreateSequence() throws Exception {
-        String sequenceName = "with-minus";
-        Set<Class<?>> entityClasses = new HashSet<Class<?>>(Arrays.asList(EntityA.class));
-        File databaseDir = File.createTempFile(DerbySequenceManagerIT.class.getSimpleName(), "database");
-        FileUtils.forceDelete(databaseDir);
-        File schemeChecksumFile = File.createTempFile(DerbySequenceManagerIT.class.getSimpleName(), "checksum");
-        DerbyEmbeddedPersistenceStorageConf storageConf = new DerbyEmbeddedPersistenceStorageConf(entityClasses,
-                databaseDir.getAbsolutePath(), //databaseName
-                schemeChecksumFile);
-        String persistenceUnitName = "reflection-form-builder-it";
-        FieldRetriever fieldRetriever = new JPACachedFieldRetriever();
-        PersistenceStorage<Long> storage = new DerbyEmbeddedPersistenceStorage(storageConf,
-                persistenceUnitName,
-                10, //parallelQueryCount
-                fieldRetriever);
-        storage.start();
-        DerbySequenceManager instance = new DerbySequenceManager(storage);
+        PersistenceStorage<Long> storage = null;
         try {
+            String sequenceName = "with-minus";
+            Set<Class<?>> entityClasses = new HashSet<Class<?>>(Arrays.asList(EntityA.class));
+            File databaseDir = Files.createTempDirectory(DerbySequenceManagerIT.class.getSimpleName()).toFile();
+            FileUtils.forceDelete(databaseDir);
+            File schemeChecksumFile = File.createTempFile(DerbySequenceManagerIT.class.getSimpleName(), "checksum");
+            DerbyEmbeddedPersistenceStorageConf storageConf = new DerbyEmbeddedPersistenceStorageConf(entityClasses,
+                    databaseDir.getAbsolutePath(), //databaseName
+                    schemeChecksumFile);
+            String persistenceUnitName = "reflection-form-builder-it";
+            FieldRetriever fieldRetriever = new JPACachedFieldRetriever();
+            storage = new DerbyEmbeddedPersistenceStorage(storageConf,
+                    persistenceUnitName,
+                    10, //parallelQueryCount
+                    fieldRetriever);
+            storage.start();
+            DerbySequenceManager instance = new DerbySequenceManager(storage);
             instance.createSequence(sequenceName);
             long nextSequenceValue = instance.getNextSequenceValue(sequenceName);
             assertEquals(0L, nextSequenceValue);
         }finally {
-            storage.shutdown();
+            if(storage != null) {
+                storage.shutdown();
+            }
         }
     }
 }

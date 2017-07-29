@@ -15,6 +15,7 @@
 package richtercloud.reflection.form.builder.jpa.sequence;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -44,51 +45,54 @@ public class MySQLSequenceManagerIT {
      */
     @Test
     public void testCreateSequence() throws Exception {
-        //assert that $HOME/mysql-5.7.17 is present and request user to download
-        //if not (there might be a more elegant way to do this)
-        String homeDirPath = System.getProperty("user.home");
-        assert homeDirPath != null;
-        File homeDir = new File(homeDirPath);
-        assert homeDir.exists();
-        File mySQLDir = new File(homeDir, "mysql-5.7.17");
-        if(!mySQLDir.exists()) {
-            throw new IllegalArgumentException(String.format("There's no MySQL installation at '%s'. Download and extract manually and restart. Can't proceed.", mySQLDir.getAbsolutePath()));
-        }else if(!mySQLDir.isDirectory()){
-            throw new IllegalArgumentException(String.format("MySQL directory '%s' exists, but is not a directory", mySQLDir.getAbsolutePath()));
-        }
-
-        String sequenceName = "with-minus";
-        Set<Class<?>> entityClasses = new HashSet<Class<?>>(Arrays.asList(EntityA.class));
-        File databaseDir = File.createTempFile(MySQLSequenceManagerIT.class.getSimpleName(), "database");
-        FileUtils.forceDelete(databaseDir);
-        File schemeChecksumFile = File.createTempFile(MySQLSequenceManagerIT.class.getSimpleName(), "checksum");
-        String username = "reflection-form-builder";
-        String password = username;
-        File myCnfFile = File.createTempFile(MySQLSequenceManagerIT.class.getSimpleName(), "mycnf");
-        myCnfFile.delete();
-        MySQLAutoPersistenceStorageConf storageConf = new MySQLAutoPersistenceStorageConf(entityClasses,
-                username,
-                databaseDir.getAbsolutePath(),
-                schemeChecksumFile);
-        storageConf.setPassword(password);
-        storageConf.setBaseDir(mySQLDir.getAbsolutePath());
-        storageConf.setMyCnfFilePath(myCnfFile.getAbsolutePath());
-        String persistenceUnitName = "reflection-form-builder-it";
-        FieldRetriever fieldRetriever = new JPACachedFieldRetriever();
-        MessageHandler messageHandler = new LoggerMessageHandler(LOGGER);
-        PersistenceStorage<Long> storage = new MySQLAutoPersistenceStorage(storageConf,
-                persistenceUnitName,
-                10, //parallelQueryCount
-                messageHandler,
-                fieldRetriever);
-        storage.start();
-        MySQLSequenceManager instance = new MySQLSequenceManager(storage);
+        PersistenceStorage<Long> storage = null;
         try {
+            //assert that $HOME/mysql-5.7.17 is present and request user to download
+            //if not (there might be a more elegant way to do this)
+            String homeDirPath = System.getProperty("user.home");
+            assert homeDirPath != null;
+            File homeDir = new File(homeDirPath);
+            assert homeDir.exists();
+            File mySQLDir = new File(homeDir, "mysql-5.7.17");
+            if(!mySQLDir.exists()) {
+                throw new IllegalArgumentException(String.format("There's no MySQL installation at '%s'. Download and extract manually and restart. Can't proceed.", mySQLDir.getAbsolutePath()));
+            }else if(!mySQLDir.isDirectory()){
+                throw new IllegalArgumentException(String.format("MySQL directory '%s' exists, but is not a directory", mySQLDir.getAbsolutePath()));
+            }
+
+            String sequenceName = "with-minus";
+            Set<Class<?>> entityClasses = new HashSet<Class<?>>(Arrays.asList(EntityA.class));
+            File databaseDir = Files.createTempDirectory(MySQLSequenceManagerIT.class.getSimpleName()).toFile();
+            FileUtils.forceDelete(databaseDir);
+            File schemeChecksumFile = File.createTempFile(MySQLSequenceManagerIT.class.getSimpleName(), "checksum");
+            String username = "reflection-form-builder";
+            String password = username;
+            File myCnfFile = File.createTempFile(MySQLSequenceManagerIT.class.getSimpleName(), "mycnf");
+            myCnfFile.delete();
+            MySQLAutoPersistenceStorageConf storageConf = new MySQLAutoPersistenceStorageConf(entityClasses,
+                    username,
+                    databaseDir.getAbsolutePath(),
+                    schemeChecksumFile);
+            storageConf.setPassword(password);
+            storageConf.setBaseDir(mySQLDir.getAbsolutePath());
+            storageConf.setMyCnfFilePath(myCnfFile.getAbsolutePath());
+            String persistenceUnitName = "reflection-form-builder-it";
+            FieldRetriever fieldRetriever = new JPACachedFieldRetriever();
+            MessageHandler messageHandler = new LoggerMessageHandler(LOGGER);
+            storage = new MySQLAutoPersistenceStorage(storageConf,
+                    persistenceUnitName,
+                    10, //parallelQueryCount
+                    messageHandler,
+                    fieldRetriever);
+            storage.start();
+            MySQLSequenceManager instance = new MySQLSequenceManager(storage);
             instance.createSequence(sequenceName);
             long nextSequenceValue = instance.getNextSequenceValue(sequenceName);
             assertEquals(1L, nextSequenceValue);
         }finally {
-            storage.shutdown();
+            if(storage != null) {
+                storage.shutdown();
+            }
         }
     }
 }
