@@ -123,14 +123,12 @@ public class JPAReflectionFormBuilderIT {
                 }
             };
             IdApplier idApplier = new GeneratedValueIdApplier();
-            IdGenerator idGenerator = new GeneratedValueIdGenerator();
             JPAReflectionFormBuilder instance = new JPAReflectionFormBuilder(storage,
                     "dialog title",
                     issueHandler,
                     confirmMessageHandler,
                     fieldRetriever,
                     idApplier,
-                    idGenerator,
                     new HashMap<Class<?>, WarningHandler<?>>() //warningHandlers
             );
 

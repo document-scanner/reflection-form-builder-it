@@ -70,6 +70,7 @@ public class MySQLSequenceManagerIT {
             File myCnfFile = File.createTempFile(MySQLSequenceManagerIT.class.getSimpleName(), "mycnf");
             myCnfFile.delete();
             MySQLAutoPersistenceStorageConf storageConf = new MySQLAutoPersistenceStorageConf(entityClasses,
+                    "localhost",
                     username,
                     databaseDir.getAbsolutePath(),
                     schemeChecksumFile);
