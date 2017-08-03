@@ -25,6 +25,8 @@ import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import richtercloud.message.handler.IssueHandler;
+import richtercloud.message.handler.LoggerIssueHandler;
 import richtercloud.reflection.form.builder.jpa.JPACachedFieldRetriever;
 import richtercloud.reflection.form.builder.jpa.entities.EntityA;
 import richtercloud.reflection.form.builder.jpa.storage.PersistenceStorage;
@@ -73,10 +75,12 @@ public class PostgresqlSequenceManagerIT {
             );
             String persistenceUnitName = "reflection-form-builder-it";
             FieldRetriever fieldRetriever = new JPACachedFieldRetriever();
+            IssueHandler issueHandler = new LoggerIssueHandler(LOGGER);
             storage = new PostgresqlAutoPersistenceStorage(storageConf,
                     persistenceUnitName,
                     10, //parallelQueryCount
-                    fieldRetriever);
+                    fieldRetriever,
+                    issueHandler);
             storage.start();
             PostgresqlSequenceManager instance = new PostgresqlSequenceManager(storage);
             instance.createSequence(sequenceName);
