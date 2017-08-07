@@ -24,8 +24,8 @@ import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import richtercloud.message.handler.LoggerMessageHandler;
-import richtercloud.message.handler.MessageHandler;
+import richtercloud.message.handler.IssueHandler;
+import richtercloud.message.handler.LoggerIssueHandler;
 import richtercloud.reflection.form.builder.jpa.JPACachedFieldRetriever;
 import richtercloud.reflection.form.builder.jpa.entities.EntityA;
 import richtercloud.reflection.form.builder.jpa.storage.MySQLAutoPersistenceStorage;
@@ -79,11 +79,11 @@ public class MySQLSequenceManagerIT {
             storageConf.setMyCnfFilePath(myCnfFile.getAbsolutePath());
             String persistenceUnitName = "reflection-form-builder-it";
             FieldRetriever fieldRetriever = new JPACachedFieldRetriever();
-            MessageHandler messageHandler = new LoggerMessageHandler(LOGGER);
+            IssueHandler issueHandler = new LoggerIssueHandler(LOGGER);
             storage = new MySQLAutoPersistenceStorage(storageConf,
                     persistenceUnitName,
                     10, //parallelQueryCount
-                    messageHandler,
+                    issueHandler,
                     fieldRetriever);
             storage.start();
             MySQLSequenceManager instance = new MySQLSequenceManager(storage);
