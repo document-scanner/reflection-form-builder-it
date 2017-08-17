@@ -26,9 +26,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import richtercloud.message.handler.IssueHandler;
 import richtercloud.message.handler.LoggerIssueHandler;
-import richtercloud.reflection.form.builder.jpa.JPACachedFieldRetriever;
 import richtercloud.reflection.form.builder.jpa.ReflectionFormBuilderITTools;
 import richtercloud.reflection.form.builder.jpa.entities.EntityA;
+import richtercloud.reflection.form.builder.jpa.retriever.JPAOrderedCachedFieldRetriever;
 import richtercloud.reflection.form.builder.jpa.storage.MySQLAutoPersistenceStorage;
 import richtercloud.reflection.form.builder.jpa.storage.MySQLAutoPersistenceStorageConf;
 import richtercloud.reflection.form.builder.jpa.storage.PersistenceStorage;
@@ -87,7 +87,7 @@ public class MySQLSequenceManagerIT {
             storageConf.setBaseDir(mySQLDir.getAbsolutePath());
             storageConf.setMyCnfFilePath(myCnfFile.getAbsolutePath());
             String persistenceUnitName = "reflection-form-builder-it";
-            FieldRetriever fieldRetriever = new JPACachedFieldRetriever();
+            FieldRetriever fieldRetriever = new JPAOrderedCachedFieldRetriever(entityClasses);
             IssueHandler issueHandler = new LoggerIssueHandler(LOGGER);
             storage = new MySQLAutoPersistenceStorage(storageConf,
                     persistenceUnitName,

@@ -58,9 +58,11 @@ import richtercloud.reflection.form.builder.jpa.entities.EntityFMappedBy;
 import richtercloud.reflection.form.builder.jpa.entities.EntityFMappedByInverse;
 import richtercloud.reflection.form.builder.jpa.idapplier.GeneratedValueIdApplier;
 import richtercloud.reflection.form.builder.jpa.idapplier.IdApplier;
+import richtercloud.reflection.form.builder.jpa.retriever.JPAOrderedCachedFieldRetriever;
 import richtercloud.reflection.form.builder.jpa.storage.DerbyEmbeddedPersistenceStorage;
 import richtercloud.reflection.form.builder.jpa.storage.DerbyEmbeddedPersistenceStorageConf;
 import richtercloud.reflection.form.builder.jpa.storage.PersistenceStorage;
+import richtercloud.reflection.form.builder.retriever.FieldOrderValidationException;
 import richtercloud.reflection.form.builder.storage.StorageConfValidationException;
 import richtercloud.reflection.form.builder.storage.StorageCreationException;
 import richtercloud.reflection.form.builder.storage.StorageException;
@@ -80,7 +82,16 @@ public class JPAReflectionFormBuilderIT {
     private final static Logger LOGGER = LoggerFactory.getLogger(JPAReflectionFormBuilderIT.class);
 
     @Test
-    public void testOnFieldUpdate() throws IOException, StorageCreationException, NoSuchFieldException, IllegalArgumentException, IllegalAccessException, StorageConfValidationException, StorageException, SQLException, InvocationTargetException {
+    public void testOnFieldUpdate() throws IOException,
+            StorageCreationException,
+            NoSuchFieldException,
+            IllegalArgumentException,
+            IllegalAccessException,
+            StorageConfValidationException,
+            StorageException,
+            SQLException,
+            InvocationTargetException,
+            FieldOrderValidationException {
         PersistenceStorage<Long> storage = null;
         try {
             Set<Class<?>> entityClasses = new HashSet<Class<?>>(Arrays.asList(EntityA.class,
@@ -101,7 +112,7 @@ public class JPAReflectionFormBuilderIT {
                     databaseName,
                     schemeChecksumFile);
             String persistenceUnitName = "reflection-form-builder-it";
-            JPAFieldRetriever fieldRetriever = new JPACachedFieldRetriever();
+            JPAFieldRetriever fieldRetriever = new JPAOrderedCachedFieldRetriever(entityClasses);
             storage = new DerbyEmbeddedPersistenceStorage(storageConf,
                     persistenceUnitName,
                     1, //parallelQueryCount

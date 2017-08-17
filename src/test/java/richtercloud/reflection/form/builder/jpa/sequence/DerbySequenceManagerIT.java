@@ -22,8 +22,8 @@ import java.util.Set;
 import org.apache.commons.io.FileUtils;
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;
-import richtercloud.reflection.form.builder.jpa.JPACachedFieldRetriever;
 import richtercloud.reflection.form.builder.jpa.entities.EntityA;
+import richtercloud.reflection.form.builder.jpa.retriever.JPAOrderedCachedFieldRetriever;
 import richtercloud.reflection.form.builder.jpa.storage.DerbyEmbeddedPersistenceStorage;
 import richtercloud.reflection.form.builder.jpa.storage.DerbyEmbeddedPersistenceStorageConf;
 import richtercloud.reflection.form.builder.jpa.storage.PersistenceStorage;
@@ -51,7 +51,7 @@ public class DerbySequenceManagerIT {
                     databaseDir.getAbsolutePath(), //databaseName
                     schemeChecksumFile);
             String persistenceUnitName = "reflection-form-builder-it";
-            FieldRetriever fieldRetriever = new JPACachedFieldRetriever();
+            FieldRetriever fieldRetriever = new JPAOrderedCachedFieldRetriever(entityClasses);
             storage = new DerbyEmbeddedPersistenceStorage(storageConf,
                     persistenceUnitName,
                     10, //parallelQueryCount

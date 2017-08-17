@@ -39,12 +39,13 @@ import richtercloud.jhbuild.java.wrapper.OSNotRecognizedException;
 import richtercloud.jhbuild.java.wrapper.download.AutoDownloader;
 import richtercloud.message.handler.IssueHandler;
 import richtercloud.message.handler.LoggerIssueHandler;
-import richtercloud.reflection.form.builder.jpa.JPACachedFieldRetriever;
 import richtercloud.reflection.form.builder.jpa.ReflectionFormBuilderITTools;
 import richtercloud.reflection.form.builder.jpa.entities.EntityA;
+import richtercloud.reflection.form.builder.jpa.retriever.JPAOrderedCachedFieldRetriever;
 import richtercloud.reflection.form.builder.jpa.storage.PersistenceStorage;
 import richtercloud.reflection.form.builder.jpa.storage.PostgresqlAutoPersistenceStorage;
 import richtercloud.reflection.form.builder.jpa.storage.PostgresqlAutoPersistenceStorageConf;
+import richtercloud.reflection.form.builder.retriever.FieldOrderValidationException;
 import richtercloud.test.tools.ParallelITExecutor;
 import richtercloud.validation.tools.FieldRetriever;
 
@@ -61,6 +62,7 @@ public class PostgresqlSequenceManagerIT {
     @Test
     public void testCreateSequence() throws InterruptedException,
             ExecutionException,
+            FieldOrderValidationException,
             OSNotRecognizedException,
             ArchitectureNotRecognizedException,
             IOException,
@@ -111,7 +113,7 @@ public class PostgresqlSequenceManagerIT {
         String persistenceUnitName = "reflection-form-builder-it";
         Lock findPortLock = new ReentrantLock(true //fair
                 );
-        FieldRetriever fieldRetriever = new JPACachedFieldRetriever();
+        FieldRetriever fieldRetriever = new JPAOrderedCachedFieldRetriever(entityClasses);
         ParallelITExecutor parallelITExecutor = new ParallelITExecutor();
         parallelITExecutor.executeLambdaInParallel(parallelism, () -> {
             PersistenceStorage<Long> storage = null;
