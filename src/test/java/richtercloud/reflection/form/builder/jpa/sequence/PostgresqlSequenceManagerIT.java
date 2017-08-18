@@ -20,11 +20,13 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.tuple.Pair;
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import richtercloud.jhbuild.java.wrapper.ActionOnMissingBinary;
+import richtercloud.jhbuild.java.wrapper.JHBuildJavaWrapper;
+import richtercloud.jhbuild.java.wrapper.download.AutoDownloader;
 import richtercloud.message.handler.IssueHandler;
 import richtercloud.message.handler.LoggerIssueHandler;
 import richtercloud.reflection.form.builder.jpa.JPACachedFieldRetriever;
@@ -57,11 +59,36 @@ public class PostgresqlSequenceManagerIT {
             String username = "reflection-form-builder";
             String password = username;
             String databaseName = "reflection-form-builder";
-            Pair<String, String> bestPostgresqlBaseDir = PostgresqlAutoPersistenceStorageConf.findBestInitialPostgresqlBasePath();
-                //@TODO: add discovery for other OS and allow specification as system property
-            if(bestPostgresqlBaseDir == null) {
-                throw new IllegalArgumentException("no PostgreSQL initdb binary could be found (currently only Debian-based systems with PostgreSQL binaries in /usr/lib/postgresql/[version] are supported.");
-            }
+            IssueHandler issueHandler = new LoggerIssueHandler(LOGGER);
+            File postgresqlInstallationPrefixDir = Files.createTempDirectory(PostgresqlSequenceManagerIT.class.getSimpleName()).toFile();
+            LOGGER.debug(String.format("using '%s' as PostgreSQL installation prefix",
+                    postgresqlInstallationPrefixDir.getAbsolutePath()));
+            File downloadDir = Files.createTempDirectory(PostgresqlSequenceManagerIT.class.getSimpleName()).toFile();
+                //SystemUtils.getUserHome() causes trouble
+                //($HOME/jhbuild/checkout might be jhbuilds default extraction
+                //directory)
+            LOGGER.debug(String.format("using '%s' as JHBuild Java wrapper download directory",
+                    downloadDir));
+            JHBuildJavaWrapper jHBuildJavaWrapper = new JHBuildJavaWrapper(postgresqlInstallationPrefixDir, //installationPrefixDir
+                    downloadDir, //downloadDir
+                    ActionOnMissingBinary.DOWNLOAD,
+                    ActionOnMissingBinary.DOWNLOAD,
+                    new AutoDownloader(), //downloader
+                    false,
+                    true, //silenceStdout
+                    true, //silenceStderr
+                    issueHandler);
+            String moduleName = "postgresql-9.6.3";
+            LOGGER.info(String.format("building module %s from JHBuild Java wrapper's default moduleset",
+                    moduleName));
+            jHBuildJavaWrapper.installModuleset(moduleName);
+                //moduleset shipped with jhbuild-java-wrapper
+            String initdb = new File(postgresqlInstallationPrefixDir,
+                    String.join(File.separator, "bin", "initdb")).getAbsolutePath();
+            String postgres = new File(postgresqlInstallationPrefixDir,
+                    String.join(File.separator, "bin", "postgres")).getAbsolutePath();
+            String createdb = new File(postgresqlInstallationPrefixDir,
+                    String.join(File.separator, "bin", "createdb")).getAbsolutePath();
             PostgresqlAutoPersistenceStorageConf storageConf = new PostgresqlAutoPersistenceStorageConf(entityClasses,
                     "localhost",
                     username,
@@ -69,13 +96,12 @@ public class PostgresqlSequenceManagerIT {
                     databaseName,
                     schemeChecksumFile,
                     databaseDir.getAbsolutePath(), //databaseDir
-                    bestPostgresqlBaseDir.getKey(),
-                    bestPostgresqlBaseDir.getValue(),
-                    "createdb" //createdbBinaryPath
+                    initdb, //initdbBinaryPath
+                    postgres, //postgresBinaryPath
+                    createdb //createdbBinaryPath
             );
             String persistenceUnitName = "reflection-form-builder-it";
             FieldRetriever fieldRetriever = new JPACachedFieldRetriever();
-            IssueHandler issueHandler = new LoggerIssueHandler(LOGGER);
             storage = new PostgresqlAutoPersistenceStorage(storageConf,
                     persistenceUnitName,
                     10, //parallelQueryCount
