@@ -97,7 +97,9 @@ public class JPAReflectionFormBuilderIT {
             Connection connection = DriverManager.getConnection(String.format("jdbc:derby:%s;create=true", databaseDir.getAbsolutePath()));
             connection.close();
             File schemeChecksumFile = File.createTempFile(JPAReflectionFormBuilderIT.class.getSimpleName(), null);
-            DerbyEmbeddedPersistenceStorageConf storageConf = new DerbyEmbeddedPersistenceStorageConf(entityClasses, databaseName, schemeChecksumFile);
+            DerbyEmbeddedPersistenceStorageConf storageConf = new DerbyEmbeddedPersistenceStorageConf(entityClasses,
+                    databaseName,
+                    schemeChecksumFile);
             String persistenceUnitName = "reflection-form-builder-it";
             JPAFieldRetriever fieldRetriever = new JPACachedFieldRetriever();
             storage = new DerbyEmbeddedPersistenceStorage(storageConf,

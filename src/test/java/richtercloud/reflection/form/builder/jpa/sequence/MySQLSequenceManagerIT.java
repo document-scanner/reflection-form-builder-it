@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import richtercloud.message.handler.IssueHandler;
 import richtercloud.message.handler.LoggerIssueHandler;
 import richtercloud.reflection.form.builder.jpa.JPACachedFieldRetriever;
+import richtercloud.reflection.form.builder.jpa.ReflectionFormBuilderITTools;
 import richtercloud.reflection.form.builder.jpa.entities.EntityA;
 import richtercloud.reflection.form.builder.jpa.storage.MySQLAutoPersistenceStorage;
 import richtercloud.reflection.form.builder.jpa.storage.MySQLAutoPersistenceStorageConf;
@@ -61,18 +62,26 @@ public class MySQLSequenceManagerIT {
             }
 
             String sequenceName = "with-minus";
-            Set<Class<?>> entityClasses = new HashSet<Class<?>>(Arrays.asList(EntityA.class));
+            Set<Class<?>> entityClasses = new HashSet<>(Arrays.asList(EntityA.class));
             File databaseDir = Files.createTempDirectory(MySQLSequenceManagerIT.class.getSimpleName()).toFile();
             FileUtils.forceDelete(databaseDir);
+            String databaseName = "reflection-form-builder-it";
             File schemeChecksumFile = File.createTempFile(MySQLSequenceManagerIT.class.getSimpleName(), "checksum");
             String username = "reflection-form-builder";
             String password = username;
             File myCnfFile = File.createTempFile(MySQLSequenceManagerIT.class.getSimpleName(), "mycnf");
             myCnfFile.delete();
-            MySQLAutoPersistenceStorageConf storageConf = new MySQLAutoPersistenceStorageConf(entityClasses,
+            int databasePort = ReflectionFormBuilderITTools.findFreePort(MySQLAutoPersistenceStorageConf.PORT_DEFAULT);
+            LOGGER.info(String.format("using random next free port %d",
+                    databasePort));
+            MySQLAutoPersistenceStorageConf storageConf = new MySQLAutoPersistenceStorageConf(databaseDir.getAbsolutePath(),
+                    mySQLDir.getAbsolutePath(),
                     "localhost",
+                    databasePort,
+                    entityClasses,
                     username,
-                    databaseDir.getAbsolutePath(),
+                    password,
+                    databaseName,
                     schemeChecksumFile);
             storageConf.setPassword(password);
             storageConf.setBaseDir(mySQLDir.getAbsolutePath());
