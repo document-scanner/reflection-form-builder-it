@@ -3,17 +3,39 @@
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
-
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
-
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package richtercloud.reflection.form.builder.jpa.sequence;
+package de.richtercloud.reflection.form.builder.jpa.sequence;
 
+import de.richtercloud.jhbuild.java.wrapper.ActionOnMissingBinary;
+import de.richtercloud.jhbuild.java.wrapper.ArchitectureNotRecognizedException;
+import de.richtercloud.jhbuild.java.wrapper.BuildFailureException;
+import de.richtercloud.jhbuild.java.wrapper.ExtractionException;
+import de.richtercloud.jhbuild.java.wrapper.JHBuildJavaWrapper;
+import de.richtercloud.jhbuild.java.wrapper.MissingSystemBinaryException;
+import de.richtercloud.jhbuild.java.wrapper.ModuleBuildFailureException;
+import de.richtercloud.jhbuild.java.wrapper.OSNotRecognizedException;
+import de.richtercloud.jhbuild.java.wrapper.download.AutoDownloader;
+import de.richtercloud.jhbuild.java.wrapper.download.DownloadException;
+import de.richtercloud.message.handler.IssueHandler;
+import de.richtercloud.message.handler.LoggerIssueHandler;
+import de.richtercloud.reflection.form.builder.jpa.ReflectionFormBuilderITUtils;
+import de.richtercloud.reflection.form.builder.jpa.entities.EntityA;
+import de.richtercloud.reflection.form.builder.jpa.retriever.JPAOrderedCachedFieldRetriever;
+import de.richtercloud.reflection.form.builder.jpa.storage.PersistenceStorage;
+import de.richtercloud.reflection.form.builder.jpa.storage.PostgresqlAutoPersistenceStorage;
+import de.richtercloud.reflection.form.builder.jpa.storage.PostgresqlAutoPersistenceStorageConf;
+import de.richtercloud.reflection.form.builder.retriever.FieldOrderValidationException;
+import de.richtercloud.test.tools.ParallelITExecutor;
+import de.richtercloud.validation.tools.FieldRetriever;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -28,26 +50,6 @@ import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import richtercloud.jhbuild.java.wrapper.ActionOnMissingBinary;
-import richtercloud.jhbuild.java.wrapper.ArchitectureNotRecognizedException;
-import richtercloud.jhbuild.java.wrapper.BuildFailureException;
-import richtercloud.jhbuild.java.wrapper.ExtractionException;
-import richtercloud.jhbuild.java.wrapper.JHBuildJavaWrapper;
-import richtercloud.jhbuild.java.wrapper.MissingSystemBinary;
-import richtercloud.jhbuild.java.wrapper.ModuleBuildFailureException;
-import richtercloud.jhbuild.java.wrapper.OSNotRecognizedException;
-import richtercloud.jhbuild.java.wrapper.download.AutoDownloader;
-import richtercloud.message.handler.IssueHandler;
-import richtercloud.message.handler.LoggerIssueHandler;
-import richtercloud.reflection.form.builder.jpa.ReflectionFormBuilderITTools;
-import richtercloud.reflection.form.builder.jpa.entities.EntityA;
-import richtercloud.reflection.form.builder.jpa.retriever.JPAOrderedCachedFieldRetriever;
-import richtercloud.reflection.form.builder.jpa.storage.PersistenceStorage;
-import richtercloud.reflection.form.builder.jpa.storage.PostgresqlAutoPersistenceStorage;
-import richtercloud.reflection.form.builder.jpa.storage.PostgresqlAutoPersistenceStorageConf;
-import richtercloud.reflection.form.builder.retriever.FieldOrderValidationException;
-import richtercloud.test.tools.ParallelITExecutor;
-import richtercloud.validation.tools.FieldRetriever;
 
 /**
  *
@@ -55,11 +57,10 @@ import richtercloud.validation.tools.FieldRetriever;
  */
 public class PostgresqlSequenceManagerIT {
     private final static Logger LOGGER = LoggerFactory.getLogger(PostgresqlSequenceManagerIT.class);
+    private static final String BIN = "bin";
 
-    /**
-     * Test of createSequence method, of class PostgresqlSequenceManager.
-     */
     @Test
+    @SuppressWarnings("PMD.JUnitTestsShouldIncludeAssert")
     public void testCreateSequence() throws InterruptedException,
             ExecutionException,
             FieldOrderValidationException,
@@ -67,9 +68,10 @@ public class PostgresqlSequenceManagerIT {
             ArchitectureNotRecognizedException,
             IOException,
             ExtractionException,
-            MissingSystemBinary,
+            MissingSystemBinaryException,
             BuildFailureException,
-            ModuleBuildFailureException {
+            ModuleBuildFailureException,
+            DownloadException {
         int parallelism = 10;
             //parallelism allows to better reproduce and detect deadlocks under
             //heavy load
@@ -92,24 +94,30 @@ public class PostgresqlSequenceManagerIT {
                 downloadDir, //downloadDir
                 ActionOnMissingBinary.DOWNLOAD,
                 ActionOnMissingBinary.DOWNLOAD,
+                ActionOnMissingBinary.DOWNLOAD,
+                ActionOnMissingBinary.DOWNLOAD,
+                ActionOnMissingBinary.DOWNLOAD,
+                ActionOnMissingBinary.DOWNLOAD,
+                ActionOnMissingBinary.DOWNLOAD,
                 new AutoDownloader(), //downloader
                 false,
-                true, //silenceStdout
-                true, //silenceStderr
-                issueHandler);
-        String moduleName = "postgresql-9.6.3";
+                new ByteArrayOutputStream(), //stdout
+                new ByteArrayOutputStream() //stderr
+        );
+        String moduleName = "postgresql-10.5";
+            //9.6.3 fails to build on Ubuntu 18.04
         LOGGER.info(String.format("building module %s from JHBuild Java wrapper's default moduleset",
                 moduleName));
         jHBuildJavaWrapper.installModuleset(moduleName);
             //moduleset shipped with jhbuild-java-wrapper
         String initdb = new File(postgresqlInstallationPrefixDir,
-                String.join(File.separator, "bin", "initdb")).getAbsolutePath();
+                String.join(File.separator, BIN, "initdb")).getAbsolutePath();
         String postgres = new File(postgresqlInstallationPrefixDir,
-                String.join(File.separator, "bin", "postgres")).getAbsolutePath();
+                String.join(File.separator, BIN, "postgres")).getAbsolutePath();
         String createdb = new File(postgresqlInstallationPrefixDir,
-                String.join(File.separator, "bin", "createdb")).getAbsolutePath();
+                String.join(File.separator, BIN, "createdb")).getAbsolutePath();
         String pgCtl = new File(postgresqlInstallationPrefixDir,
-                String.join(File.separator, "bin", "pg_ctl")).getAbsolutePath();
+                String.join(File.separator, BIN, "pg_ctl")).getAbsolutePath();
         String persistenceUnitName = "reflection-form-builder-it";
         Lock findPortLock = new ReentrantLock(true //fair
                 );
@@ -124,7 +132,7 @@ public class PostgresqlSequenceManagerIT {
                 File schemeChecksumFile = File.createTempFile(PostgresqlSequenceManagerIT.class.getSimpleName(), "checksum");
                 findPortLock.lock();
                 try {
-                    int databasePort = ReflectionFormBuilderITTools.findFreePort(PostgresqlAutoPersistenceStorageConf.PORT_DEFAULT);
+                    int databasePort = ReflectionFormBuilderITUtils.findFreePort(PostgresqlAutoPersistenceStorageConf.PORT_DEFAULT);
                     LOGGER.info(String.format("using random next free port %d",
                             databasePort));
                     PostgresqlAutoPersistenceStorageConf storageConf = new PostgresqlAutoPersistenceStorageConf(entityClasses,

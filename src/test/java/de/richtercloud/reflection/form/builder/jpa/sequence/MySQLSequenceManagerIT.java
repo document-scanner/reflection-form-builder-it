@@ -3,18 +3,31 @@
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
-
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
-
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package richtercloud.reflection.form.builder.jpa.sequence;
+package de.richtercloud.reflection.form.builder.jpa.sequence;
 
+import de.richtercloud.message.handler.IssueHandler;
+import de.richtercloud.message.handler.LoggerIssueHandler;
+import de.richtercloud.reflection.form.builder.jpa.ReflectionFormBuilderITUtils;
+import de.richtercloud.reflection.form.builder.jpa.entities.EntityA;
+import de.richtercloud.reflection.form.builder.jpa.retriever.JPAOrderedCachedFieldRetriever;
+import de.richtercloud.reflection.form.builder.jpa.storage.MySQLAutoPersistenceStorage;
+import de.richtercloud.reflection.form.builder.jpa.storage.MySQLAutoPersistenceStorageConf;
+import de.richtercloud.reflection.form.builder.jpa.storage.PersistenceStorage;
+import de.richtercloud.reflection.form.builder.retriever.FieldOrderValidationException;
+import de.richtercloud.reflection.form.builder.storage.StorageConfValidationException;
+import de.richtercloud.reflection.form.builder.storage.StorageCreationException;
+import de.richtercloud.validation.tools.FieldRetriever;
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -24,15 +37,6 @@ import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import richtercloud.message.handler.IssueHandler;
-import richtercloud.message.handler.LoggerIssueHandler;
-import richtercloud.reflection.form.builder.jpa.ReflectionFormBuilderITTools;
-import richtercloud.reflection.form.builder.jpa.entities.EntityA;
-import richtercloud.reflection.form.builder.jpa.retriever.JPAOrderedCachedFieldRetriever;
-import richtercloud.reflection.form.builder.jpa.storage.MySQLAutoPersistenceStorage;
-import richtercloud.reflection.form.builder.jpa.storage.MySQLAutoPersistenceStorageConf;
-import richtercloud.reflection.form.builder.jpa.storage.PersistenceStorage;
-import richtercloud.validation.tools.FieldRetriever;
 
 /**
  *
@@ -41,11 +45,12 @@ import richtercloud.validation.tools.FieldRetriever;
 public class MySQLSequenceManagerIT {
     private final static Logger LOGGER = LoggerFactory.getLogger(MySQLSequenceManagerIT.class);
 
-    /**
-     * Test of createSequence method, of class MySQLSequenceManager.
-     */
     @Test
-    public void testCreateSequence() throws Exception {
+    public void testCreateSequence() throws IOException,
+            FieldOrderValidationException,
+            StorageConfValidationException,
+            StorageCreationException,
+            SequenceManagementException {
         PersistenceStorage<Long> storage = null;
         try {
             //assert that $HOME/mysql-5.7.17 is present and request user to download
@@ -71,7 +76,7 @@ public class MySQLSequenceManagerIT {
             String password = username;
             File myCnfFile = File.createTempFile(MySQLSequenceManagerIT.class.getSimpleName(), "mycnf");
             myCnfFile.delete();
-            int databasePort = ReflectionFormBuilderITTools.findFreePort(MySQLAutoPersistenceStorageConf.PORT_DEFAULT);
+            int databasePort = ReflectionFormBuilderITUtils.findFreePort(MySQLAutoPersistenceStorageConf.PORT_DEFAULT);
             LOGGER.info(String.format("using random next free port %d",
                     databasePort));
             MySQLAutoPersistenceStorageConf storageConf = new MySQLAutoPersistenceStorageConf(databaseDir.getAbsolutePath(),

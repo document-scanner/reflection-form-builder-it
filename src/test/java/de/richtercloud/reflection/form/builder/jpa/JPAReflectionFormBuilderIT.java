@@ -3,17 +3,51 @@
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
-
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
-
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package richtercloud.reflection.form.builder.jpa;
+package de.richtercloud.reflection.form.builder.jpa;
 
+import de.richtercloud.message.handler.ConfirmMessageHandler;
+import de.richtercloud.message.handler.ConfirmOption;
+import de.richtercloud.message.handler.IssueHandler;
+import de.richtercloud.message.handler.LoggerIssueHandler;
+import de.richtercloud.message.handler.Message;
+import de.richtercloud.reflection.form.builder.FieldUpdateException;
+import de.richtercloud.reflection.form.builder.fieldhandler.FieldUpdateEvent;
+import de.richtercloud.reflection.form.builder.fieldhandler.MappedFieldUpdateEvent;
+import de.richtercloud.reflection.form.builder.jpa.entities.EntityA;
+import de.richtercloud.reflection.form.builder.jpa.entities.EntityAMappedBy;
+import de.richtercloud.reflection.form.builder.jpa.entities.EntityAMappedByInverse;
+import de.richtercloud.reflection.form.builder.jpa.entities.EntityB;
+import de.richtercloud.reflection.form.builder.jpa.entities.EntityBMappedBy;
+import de.richtercloud.reflection.form.builder.jpa.entities.EntityBMappedByInverse;
+import de.richtercloud.reflection.form.builder.jpa.entities.EntityC;
+import de.richtercloud.reflection.form.builder.jpa.entities.EntityCMappedBy;
+import de.richtercloud.reflection.form.builder.jpa.entities.EntityD;
+import de.richtercloud.reflection.form.builder.jpa.entities.EntityDMappedBy;
+import de.richtercloud.reflection.form.builder.jpa.entities.EntityE;
+import de.richtercloud.reflection.form.builder.jpa.entities.EntityEMappedBy;
+import de.richtercloud.reflection.form.builder.jpa.entities.EntityEMappedByInverse;
+import de.richtercloud.reflection.form.builder.jpa.entities.EntityF;
+import de.richtercloud.reflection.form.builder.jpa.entities.EntityFMappedBy;
+import de.richtercloud.reflection.form.builder.jpa.entities.EntityFMappedByInverse;
+import de.richtercloud.reflection.form.builder.jpa.idapplier.GeneratedValueIdApplier;
+import de.richtercloud.reflection.form.builder.jpa.idapplier.IdApplier;
+import de.richtercloud.reflection.form.builder.jpa.retriever.JPAOrderedCachedFieldRetriever;
+import de.richtercloud.reflection.form.builder.jpa.storage.DerbyEmbeddedPersistenceStorage;
+import de.richtercloud.reflection.form.builder.jpa.storage.DerbyEmbeddedPersistenceStorageConf;
+import de.richtercloud.reflection.form.builder.jpa.storage.PersistenceStorage;
+import de.richtercloud.reflection.form.builder.retriever.FieldOrderValidationException;
+import de.richtercloud.reflection.form.builder.storage.StorageConfValidationException;
+import de.richtercloud.reflection.form.builder.storage.StorageCreationException;
+import de.richtercloud.reflection.form.builder.storage.StorageException;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -33,39 +67,6 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import richtercloud.message.handler.ConfirmMessageHandler;
-import richtercloud.message.handler.ConfirmOption;
-import richtercloud.message.handler.IssueHandler;
-import richtercloud.message.handler.LoggerIssueHandler;
-import richtercloud.message.handler.Message;
-import richtercloud.reflection.form.builder.fieldhandler.FieldUpdateEvent;
-import richtercloud.reflection.form.builder.fieldhandler.MappedFieldUpdateEvent;
-import richtercloud.reflection.form.builder.jpa.entities.EntityA;
-import richtercloud.reflection.form.builder.jpa.entities.EntityAMappedBy;
-import richtercloud.reflection.form.builder.jpa.entities.EntityAMappedByInverse;
-import richtercloud.reflection.form.builder.jpa.entities.EntityB;
-import richtercloud.reflection.form.builder.jpa.entities.EntityBMappedBy;
-import richtercloud.reflection.form.builder.jpa.entities.EntityBMappedByInverse;
-import richtercloud.reflection.form.builder.jpa.entities.EntityC;
-import richtercloud.reflection.form.builder.jpa.entities.EntityCMappedBy;
-import richtercloud.reflection.form.builder.jpa.entities.EntityD;
-import richtercloud.reflection.form.builder.jpa.entities.EntityDMappedBy;
-import richtercloud.reflection.form.builder.jpa.entities.EntityE;
-import richtercloud.reflection.form.builder.jpa.entities.EntityEMappedBy;
-import richtercloud.reflection.form.builder.jpa.entities.EntityEMappedByInverse;
-import richtercloud.reflection.form.builder.jpa.entities.EntityF;
-import richtercloud.reflection.form.builder.jpa.entities.EntityFMappedBy;
-import richtercloud.reflection.form.builder.jpa.entities.EntityFMappedByInverse;
-import richtercloud.reflection.form.builder.jpa.idapplier.GeneratedValueIdApplier;
-import richtercloud.reflection.form.builder.jpa.idapplier.IdApplier;
-import richtercloud.reflection.form.builder.jpa.retriever.JPAOrderedCachedFieldRetriever;
-import richtercloud.reflection.form.builder.jpa.storage.DerbyEmbeddedPersistenceStorage;
-import richtercloud.reflection.form.builder.jpa.storage.DerbyEmbeddedPersistenceStorageConf;
-import richtercloud.reflection.form.builder.jpa.storage.PersistenceStorage;
-import richtercloud.reflection.form.builder.retriever.FieldOrderValidationException;
-import richtercloud.reflection.form.builder.storage.StorageConfValidationException;
-import richtercloud.reflection.form.builder.storage.StorageCreationException;
-import richtercloud.reflection.form.builder.storage.StorageException;
 
 /**
  * Shows that {@link JPAReflectionFormBuilder} handles setting of mapped fields
@@ -82,6 +83,7 @@ public class JPAReflectionFormBuilderIT {
     private final static Logger LOGGER = LoggerFactory.getLogger(JPAReflectionFormBuilderIT.class);
 
     @Test
+    @SuppressWarnings("PMD.JUnitTestContainsTooManyAsserts")
     public void testOnFieldUpdate() throws IOException,
             StorageCreationException,
             NoSuchFieldException,
@@ -91,10 +93,11 @@ public class JPAReflectionFormBuilderIT {
             StorageException,
             SQLException,
             InvocationTargetException,
-            FieldOrderValidationException {
+            FieldOrderValidationException,
+            FieldUpdateException {
         PersistenceStorage<Long> storage = null;
         try {
-            Set<Class<?>> entityClasses = new HashSet<Class<?>>(Arrays.asList(EntityA.class,
+            Set<Class<?>> entityClasses = new HashSet<>(Arrays.asList(EntityA.class,
                     EntityB.class,
                     EntityC.class,
                     EntityD.class,
@@ -105,8 +108,10 @@ public class JPAReflectionFormBuilderIT {
             //databaseDir mustn't exist for Apache Derby
             String databaseName = databaseDir.getAbsolutePath();
             LOGGER.debug(String.format("database directory: %s", databaseName));
-            Connection connection = DriverManager.getConnection(String.format("jdbc:derby:%s;create=true", databaseDir.getAbsolutePath()));
-            connection.close();
+            try(Connection connection = DriverManager.getConnection(String.format("jdbc:derby:%s;create=true", databaseDir.getAbsolutePath()))) {
+                connection.getCatalog();
+                    //do something to test the connection
+            }
             File schemeChecksumFile = File.createTempFile(JPAReflectionFormBuilderIT.class.getSimpleName(), null);
             DerbyEmbeddedPersistenceStorageConf storageConf = new DerbyEmbeddedPersistenceStorageConf(entityClasses,
                     databaseName,
@@ -142,7 +147,7 @@ public class JPAReflectionFormBuilderIT {
                     confirmMessageHandler,
                     fieldRetriever,
                     idApplier,
-                    new HashMap<Class<?>, WarningHandler<?>>() //warningHandlers
+                    new HashMap<>() //warningHandlers
             );
 
             //general test scenario:

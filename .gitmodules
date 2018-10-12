@@ -1,0 +1,3 @@
+[submodule "code-analysis"]
+	path = code-analysis
+	url = https://github.com/krichter722/code-analysis.git
