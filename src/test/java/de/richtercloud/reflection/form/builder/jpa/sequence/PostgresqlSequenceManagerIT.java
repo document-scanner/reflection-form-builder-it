@@ -14,15 +14,12 @@
  */
 package de.richtercloud.reflection.form.builder.jpa.sequence;
 
-import de.richtercloud.jhbuild.java.wrapper.ActionOnMissingBinary;
 import de.richtercloud.jhbuild.java.wrapper.ArchitectureNotRecognizedException;
 import de.richtercloud.jhbuild.java.wrapper.BuildFailureException;
 import de.richtercloud.jhbuild.java.wrapper.ExtractionException;
-import de.richtercloud.jhbuild.java.wrapper.JHBuildJavaWrapper;
 import de.richtercloud.jhbuild.java.wrapper.MissingSystemBinaryException;
 import de.richtercloud.jhbuild.java.wrapper.ModuleBuildFailureException;
 import de.richtercloud.jhbuild.java.wrapper.OSNotRecognizedException;
-import de.richtercloud.jhbuild.java.wrapper.download.AutoDownloader;
 import de.richtercloud.jhbuild.java.wrapper.download.DownloadException;
 import de.richtercloud.message.handler.IssueHandler;
 import de.richtercloud.message.handler.LoggerIssueHandler;
@@ -35,7 +32,6 @@ import de.richtercloud.reflection.form.builder.jpa.storage.PostgresqlAutoPersist
 import de.richtercloud.reflection.form.builder.retriever.FieldOrderValidationException;
 import de.richtercloud.test.tools.ParallelITExecutor;
 import de.richtercloud.validation.tools.FieldRetriever;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -72,44 +68,32 @@ public class PostgresqlSequenceManagerIT {
             BuildFailureException,
             ModuleBuildFailureException,
             DownloadException {
+        //assert that /usr/lib/postgresql/1ß is present and request user to download
+        //if not (there might be a more elegant way to do this)
+        String postgresqlInstallationPrefixDir = String.join(File.separator, "/", "usr", "lib", "postgresql", "9.6");
+        File postgresqlDir = new File(postgresqlInstallationPrefixDir);
+        if(!postgresqlDir.exists()) {
+            postgresqlInstallationPrefixDir = String.join(File.separator, "/", "usr", "lib", "postgresql", "10");
+            postgresqlDir = new File(postgresqlInstallationPrefixDir);
+            if(!postgresqlDir.exists()) {
+                throw new IllegalArgumentException(String.format("There's no PostgreSQL installation at '%s'. Can't proceed.", postgresqlDir.getAbsolutePath()));
+            }else if(!postgresqlDir.isDirectory()) {
+                throw new IllegalArgumentException(String.format("PostgreSQL directory '%s' exists, but is not a directory", postgresqlDir.getAbsolutePath()));
+            }
+        }else if(!postgresqlDir.isDirectory()){
+            throw new IllegalArgumentException(String.format("PostgreSQL directory '%s' exists, but is not a directory", postgresqlDir.getAbsolutePath()));
+        }
+
         int parallelism = 10;
-            //parallelism allows to better reproduce and detect deadlocks under
-            //heavy load
+        //parallelism allows to better reproduce and detect deadlocks under
+        //heavy load
         String sequenceName = "with-minus";
         Set<Class<?>> entityClasses = new HashSet<>(Arrays.asList(EntityA.class));
         String username = "reflection-form-builder";
         String password = username;
         String databaseName = "reflection-form-builder";
+
         IssueHandler issueHandler = new LoggerIssueHandler(LOGGER);
-        File postgresqlInstallationPrefixDir = Files.createTempDirectory(PostgresqlSequenceManagerIT.class.getSimpleName()).toFile();
-        LOGGER.debug(String.format("using '%s' as PostgreSQL installation prefix",
-                postgresqlInstallationPrefixDir.getAbsolutePath()));
-        File downloadDir = Files.createTempDirectory(PostgresqlSequenceManagerIT.class.getSimpleName()).toFile();
-            //SystemUtils.getUserHome() causes trouble
-            //($HOME/jhbuild/checkout might be jhbuilds default extraction
-            //directory)
-        LOGGER.debug(String.format("using '%s' as JHBuild Java wrapper download directory",
-                downloadDir));
-        JHBuildJavaWrapper jHBuildJavaWrapper = new JHBuildJavaWrapper(postgresqlInstallationPrefixDir, //installationPrefixDir
-                downloadDir, //downloadDir
-                ActionOnMissingBinary.DOWNLOAD,
-                ActionOnMissingBinary.DOWNLOAD,
-                ActionOnMissingBinary.DOWNLOAD,
-                ActionOnMissingBinary.DOWNLOAD,
-                ActionOnMissingBinary.DOWNLOAD,
-                ActionOnMissingBinary.DOWNLOAD,
-                ActionOnMissingBinary.DOWNLOAD,
-                new AutoDownloader(), //downloader
-                false,
-                new ByteArrayOutputStream(), //stdout
-                new ByteArrayOutputStream() //stderr
-        );
-        String moduleName = "postgresql-10.5";
-            //9.6.3 fails to build on Ubuntu 18.04
-        LOGGER.info(String.format("building module %s from JHBuild Java wrapper's default moduleset",
-                moduleName));
-        jHBuildJavaWrapper.installModuleset(moduleName);
-            //moduleset shipped with jhbuild-java-wrapper
         String initdb = new File(postgresqlInstallationPrefixDir,
                 String.join(File.separator, BIN, "initdb")).getAbsolutePath();
         String postgres = new File(postgresqlInstallationPrefixDir,
