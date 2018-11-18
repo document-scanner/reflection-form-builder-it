@@ -53,13 +53,13 @@ public class MySQLSequenceManagerIT {
             SequenceManagementException {
         PersistenceStorage<Long> storage = null;
         try {
-            //assert that $HOME/mysql-5.7.17 is present and request user to download
+            //assert that $HOME/mysql-5.7.24 is present and request user to download
             //if not (there might be a more elegant way to do this)
             String homeDirPath = System.getProperty("user.home");
             assert homeDirPath != null;
             File homeDir = new File(homeDirPath);
             assert homeDir.exists();
-            File mySQLDir = new File(homeDir, "mysql-5.7.17");
+            File mySQLDir = new File(homeDir, "mysql-5.7.24");
             if(!mySQLDir.exists()) {
                 throw new IllegalArgumentException(String.format("There's no MySQL installation at '%s'. Download and extract manually and restart. Can't proceed.", mySQLDir.getAbsolutePath()));
             }else if(!mySQLDir.isDirectory()){
