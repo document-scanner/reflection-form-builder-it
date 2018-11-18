@@ -4,7 +4,7 @@
     <parent>
         <groupId>de.richtercloud</groupId>
         <artifactId>reflection-form-builder-parent</artifactId>
-        <version>1.0-SNAPSHOT</version>
+        <version>1.0</version>
     </parent>
     <artifactId>reflection-form-builder-it</artifactId>
     <packaging>jar</packaging>
