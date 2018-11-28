@@ -1,3 +1,7 @@
 [submodule "code-analysis"]
 	path = code-analysis
 	url = https://github.com/krichter722/code-analysis.git
+[submodule "checkstyle-config"]
+	path = checkstyle-config
+	url = https://gitlab.com/krichter/checkstyle-config.git
+	branch = gplv3
